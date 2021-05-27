@@ -1,4 +1,5 @@
 from base_models import SupervisedModel
+import
 
 import numpy as np
 
@@ -16,6 +17,8 @@ class KNN(SupervisedModel):
         self.k = k
         self.classes = None
         self.data = None
+
+        KNN.askNewData(self)
 
     def __str(self):
         return f"[KNN Object [k={self.k}]"
@@ -45,7 +48,7 @@ class KNN(SupervisedModel):
                   similar to datapoint
         """
         distances = []  # distances between the matrix and the datapoint
-
+        print(self.data)
         size = len(self.data)
         vector_of_the_matrix = []
 
@@ -88,6 +91,16 @@ class KNN(SupervisedModel):
         predicted_class = np.argmax(counts)
         return predicted_class
 
+    def askNewData(self):
+        print("Please, type the x value")
+        x = input()
+        print("Please, type the y value")
+        y = input()
+
+        inputs = [x, y]
+        array_inputs = np.array(inputs)
+
+        KNN.predict(self, array_inputs)
 
 if __name__ == "__main__":
     object_knn = KNN(4)

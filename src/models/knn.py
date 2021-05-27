@@ -1,22 +1,41 @@
 from base_models import SupervisedModel
 
 import numpy as np
-import panda as pd
 
 
 class KNN(SupervisedModel):
-    """
-               Creates a new KNN object.
 
-               Arguments:
-                 K: the number of nearest neighboors
-    """
+    def __init__(self, k):
+        """
+            Creates a new KNN object.
+           Arguments:
+                k: the number of nearest neighboors
 
-
-    def __int__(self, k):
+        """
+        super(KNN, self).__init__()
         self.k = k
+        self.classes = None
+        self.data = None
 
-    def get_k_neighboors(self, datapoint):
+    def __str(self):
+        return f"[KNN Object [k={self.k}]"
+
+    def calculate_distance(self, datapoint1, datapoint2):
+        """
+               Calculates the euclidean
+               Arguments:
+                 datapoint1: numpy.array, first datapoint. It's the row vector we want to compare with the others.
+                 datapoint2: numpy.array, second datapoint
+               Returns:
+                 Distance between the given datapoints
+            """
+        if isinstance(datapoint1, np.ndarray) and isinstance(datapoint2, np.ndarray):
+            array3 = np.subtract(datapoint2, datapoint1)
+            return np.linalg.norm(array3)
+        else:
+            raise ValueError(" Datatype not valid")
+
+    def get_k_neighbours(self, datapoint):
         """
        Gets the k-nearest neighboors of a given datapoint
        Argunments:
@@ -24,7 +43,7 @@ class KNN(SupervisedModel):
        Returns:
          indices: list, indices corresponding with the k datapoints in self.X most
                   similar to datapoint
-    """
+        """
         distances = []  # distances between the matrix and the datapoint
 
         size = len(self.data)
@@ -44,42 +63,46 @@ class KNN(SupervisedModel):
 
         return k_indices
 
-    """
-       Calculates the euclidean 
-       Arguments:
-         datapoint1: numpy.array, first datapoint. It's the row vector we want to compare with the others.
-         datapoint2: numpy.array, second datapoint
-       Returns:
-         Distance between the given datapoints
-       """
 
-    def calculate_distance(self, datapoint1, datapoint2):
-        if isinstance(datapoint1, np.ndarray) and isinstance(datapoint2, np.ndarray):
-            array3 = np.subtract(datapoint2, datapoint1)
-            return np.linalg.norm(array3)
-        else:
-            raise ValueError(" Datatype not valid")
+    def step_fit(self, main_matrix, y):
+       pass
 
-    def step_fit(self,main_matrix, y):
+    def fit(self, main_matrix, classes):
         self.data = main_matrix
-        self.classes = y
+        self.classes = classes
 
-    """
-     Predicts the class for each datapoint in the matrix X.
-        Arguments:
-        X: numpy.ndarray, matrix used to get predictions for each datapoint, where each row represents a datapoint.
-     Returns:
-       predictions: numpy.ndarray, class predicted for each datapoint in X
-    """
-
-    def step_predict(self, x):
+    def predict(self, x):
         preds = []
         for datapoint in x:
-            indices = self.get_k_nearest_neighboors(datapoint)
-            # Obtener los indices de las clases
-            classes = np.array([self.classes[idX] for idX in indices])
-            # Obtener la clase mas frecuente de los vecinos mas cercanos
-            counts = np.bincount(classes)
-            predicted_class = np.argmax(counts)
-            preds.append(predicted_class)
+            pred = self.step_predict(datapoint)
+            preds.append(pred)
         return np.array(preds)
+
+    # Fin de los abstractos.
+    def step_predict(self, datapoint):
+        indices = self.get_k_neighbours(datapoint)
+        # Obtener los indices de las clases
+        classes = np.array([self.classes[idX] for idX in indices])
+        # Obtener la clase mas frecuente de los vecinos mas cercanos
+        counts = np.bincount(classes)
+        predicted_class = np.argmax(counts)
+        return predicted_class
+
+
+if __name__ == "__main__":
+    object_knn = KNN(4)
+    print(object_knn)
+    from sklearn.datasets import load_iris
+
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+    from sklearn.model_selection import train_test_split
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+
+    object_knn.fit(X_train, y_train)
+    preds = object_knn.predict(X_test)
+    acc = (preds == y_test).sum() / len(preds)
+    print(preds)
+    print(f"Accuracy: {acc}")
